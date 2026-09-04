@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HDR icon lab — five emissive specimens</title>
+<style>
+  /* ---------------------------------------------------------------
+     HDR palette.
+     Rec.2100 HLG puts SDR reference white at a signal of ~0.75.
+     Anything above that climbs into display headroom.
+     0.75 = paper white | 0.84 ≈ +1 stop | 0.92 ≈ +2 | 1.0 = ceiling
+     Fallback below for browsers/displays with no headroom.
+  --------------------------------------------------------------- */
+  :root {
+    --hdr-white-1:  #fff;
+    --hdr-white-2:  #fff;
+    --hdr-max:      #fff;
+    --hdr-ember:    #ff9a4d;
+    --hdr-ember-hi: #ffd7a8;
+    --hdr-cyan:     #7fe4ff;
+    --hdr-lime:     #b6ff6e;
+    --hdr-rose:     #ff8fa8;
+
+    --ink:      #e8e6e1;
+    --ink-dim:  #8b8880;
+    --ink-faint:#5a5751;
+    --stone:    #17181a;
+    --stone-2:  #202225;
+    --edge:     #2c2f33;
+    --page:     #08090a;
+  }
+
+  @supports (color: color(rec2100-hlg 1 1 1)) {
+    :root {
+      --hdr-white-1:  color(rec2100-hlg 0.84 0.84 0.84);
+      --hdr-white-2:  color(rec2100-hlg 0.92 0.92 0.92);
+      --hdr-max:      color(rec2100-hlg 1 1 1);
+      --hdr-ember:    color(rec2100-hlg 1 0.62 0.28);
+      --hdr-ember-hi: color(rec2100-hlg 1 0.86 0.68);
+      --hdr-cyan:     color(rec2100-hlg 0.62 0.95 1);
+      --hdr-lime:     color(rec2100-hlg 0.80 1 0.50);
+      --hdr-rose:     color(rec2100-hlg 1 0.66 0.74);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html { background: var(--page); }
+
+  body {
+    margin: 0;
+    padding: 0 24px 96px;
+    background: var(--page);
+    color: var(--ink);
+    font: 400 16px/1.55 ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 940px; margin: 0 auto; }
+
+  /* --- masthead ------------------------------------------------ */
+  header { padding: 72px 0 40px; max-width: 60ch; }
+
+  h1 {
+    margin: 0 0 18px;
+    font-size: clamp(30px, 6vw, 46px);
+    font-weight: 500;
+    letter-spacing: -0.022em;
+    line-height: 1.08;
+  }
+
+  header p {
+    margin: 0 0 14px;
+    color: var(--ink-dim);
+    font-size: 16.5px;
+    max-width: 58ch;
+  }
+
+  /* --- instrument readout -------------------------------------- */
+  .readout {
+    border-top: 1px solid var(--edge);
+    border-bottom: 1px solid var(--edge);
+    padding: 18px 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px 28px;
+    margin-bottom: 28px;
+  }
+  .readout div { font-size: 13.5px; }
+  .readout dt {
+    color: var(--ink-faint);
+    margin-bottom: 3px;
+  }
+  .readout dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .yes { color: var(--hdr-lime); }
+  .no  { color: #d8756b; }
+
+  /* --- control ------------------------------------------------- */
+  .control {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 56px;
+  }
+  button {
+    appearance: none;
+    border: 1px solid var(--edge);
+    background: var(--stone-2);
+    color: var(--ink);
+    font: inherit;
+    font-size: 14.5px;
+    padding: 9px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  button:hover { border-color: #454a50; }
+  button:focus-visible { outline: 2px solid var(--hdr-cyan); outline-offset: 2px; }
+  .control span { color: var(--ink-faint); font-size: 13.5px; }
+
+  /* --- specimens ----------------------------------------------- */
+  .stage { display: grid; gap: 4px; }
+  body.clamped .stage { dynamic-range-limit: standard; }
+
+  .specimen {
+    display: grid;
+    grid-template-columns: 176px 1fr;
+    gap: 32px;
+    align-items: center;
+    padding: 34px 0;
+    border-bottom: 1px solid var(--edge);
+  }
+  .specimen:first-child { border-top: 1px solid var(--edge); }
+
+  .plate {
+    height: 176px;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(120% 120% at 50% 40%, #0e0f11 0%, #060607 100%);
+    border-radius: 14px;
+  }
+
+  .meta h2 {
+    margin: 0 0 8px;
+    font-size: 21px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .meta p { margin: 0 0 12px; color: var(--ink-dim); font-size: 15px; max-width: 52ch; }
+  .recipe {
+    font-size: 13.5px;
+    color: var(--ink-faint);
+    border-left: 2px solid var(--edge);
+    padding-left: 12px;
+  }
+  .recipe b { color: var(--ink-dim); font-weight: 500; }
+
+  /* --- specimen 1: ember --------------------------------------- */
+  .ember-tile {
+    width: 116px; height: 116px;
+    border-radius: 26px;
+    background: linear-gradient(160deg, #24262a 0%, #131417 60%, #0d0e10 100%);
+    box-shadow: inset 0 1px 0 #34373c, 0 12px 28px rgba(0,0,0,.6);
+    position: relative;
+    overflow: hidden;
+  }
+  .ember-bloom {
+    position: absolute; inset: 0;
+    background: radial-gradient(46% 62% at 52% 50%, rgba(255,120,40,.42), transparent 70%);
+    filter: blur(7px);
+  }
+  .ember-tile svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* --- specimen 2: live pill ----------------------------------- */
+  .pill {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 9px 16px 9px 13px;
+    border-radius: 999px;
+    background: #191b1e;
+    border: 1px solid #2b2e32;
+    font-size: 14px;
+    letter-spacing: .01em;
+  }
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--hdr-rose);
+    position: relative;
+    animation: beat 2.4s ease-in-out infinite;
+  }
+  .dot::after {
+    content: ""; position: absolute; inset: -7px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255,90,120,.55), transparent);
+  }
+  @keyframes beat { 0%,100% { opacity: 1 } 50% { opacity: .45 } }
+
+  /* --- specimen 3: filament ------------------------------------ */
+  .filament { position: relative; width: 130px; height: 130px; }
+  .filament .halo {
+    position: absolute; inset: 0;
+    background: radial-gradient(closest-side, rgba(255,236,190,.30), transparent 72%);
+    filter: blur(10px);
+  }
+  .filament svg { position: relative; width: 100%; height: 100%; }
+
+  /* --- specimen 4: glass chip ---------------------------------- */
+  .chip {
+    width: 116px; height: 116px;
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(255,255,255,.10), rgba(255,255,255,.02) 42%, rgba(0,0,0,.25));
+    border: 1px solid rgba(255,255,255,.09);
+    backdrop-filter: blur(2px);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 14px 30px rgba(0,0,0,.55);
+  }
+  .chip .body {
+    position: absolute; inset: 0;
+    background: radial-gradient(130% 100% at 20% 0%, #3a3f47 0%, #191b1f 55%, #101114 100%);
+  }
+  .chip .spec {
+    position: absolute;
+    top: 9px; left: 14px; right: 34px; height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, transparent, var(--hdr-max) 38%, var(--hdr-white-1) 62%, transparent);
+    transform: rotate(-9deg);
+  }
+  .chip .spec-bloom {
+    position: absolute;
+    top: 2px; left: 8px; right: 26px; height: 20px;
+    background: radial-gradient(closest-side, rgba(255,255,255,.30), transparent);
+    filter: blur(6px);
+    transform: rotate(-9deg);
+  }
+  .chip .glyph {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    color: rgba(255,255,255,.30);
+    font-size: 40px; font-weight: 300;
+  }
+
+  /* --- specimen 5: sweep ring ---------------------------------- */
+  .ring { width: 132px; height: 132px; position: relative; }
+  .ring .arcglow {
+    position: absolute; inset: 6px;
+    border-radius: 50%;
+    background: conic-gradient(from -95deg, rgba(120,220,255,.55) 0deg, transparent 70deg);
+    filter: blur(9px);
+    opacity: .8;
+  }
+  .ring svg { position: relative; width: 100%; height: 100%; }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 28px;
+    border-top: 1px solid var(--edge);
+    color: var(--ink-dim);
+    font-size: 14.5px;
+    max-width: 66ch;
+  }
+  footer h3 { font-size: 16px; font-weight: 500; color: var(--ink); margin: 0 0 10px; }
+  footer ul { padding-left: 18px; margin: 0 0 20px; }
+  footer li { margin-bottom: 7px; }
+
+  @media (max-width: 620px) {
+    .specimen { grid-template-columns: 1fr; gap: 20px; }
+    .plate { height: 200px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dot { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Five icons that use the light above white</h1>
+  <p>Each specimen below is ordinary dark UI with one small region encoded in Rec.2100 HLG, so it renders above SDR paper white wherever the display has headroom to spare.</p>
+  <p>Turn your screen brightness down to roughly half and view in a dark room. Headroom is the gap above your current white level — at full brightness there is almost none left, and the effect flattens.</p>
+</header>
+
+<dl class="readout" id="readout">
+  <div><dt>Display reports</dt><dd id="r-range">checking…</dd></div>
+  <div><dt>Rec.2100 colours</dt><dd id="r-color">checking…</dd></div>
+  <div><dt>dynamic-range-limit</dt><dd id="r-limit">checking…</dd></div>
+  <div><dt>Rendering</dt><dd id="r-mode">extended</dd></div>
+</dl>
+
+<div class="control">
+  <button id="toggle" aria-pressed="false">Clamp to standard range</button>
+  <span>Flip this back and forth — that difference is the whole effect.</span>
+</div>
+
+<div class="stage" id="stage">
+
+  <!-- 1 -->
+  <article class="specimen">
+    <div class="plate">
+      <div class="ember-tile">
+        <div class="ember-bloom"></div>
+        <svg viewBox="0 0 116 116" aria-hidden="true">
+          <path d="M58 14 C54 34, 66 40, 62 56 C58 72, 48 76, 52 96 L56 102"
+                fill="none" stroke="var(--hdr-ember)" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M58 14 C54 34, 66 40, 62 56" fill="none"
+                stroke="var(--hdr-ember-hi)" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="meta">
+      <h2>Ember</h2>
+      <p>A matte ceramic tile with a hairline fracture that reads as molten rather than painted. The stone stays dull; only the crack carries light.</p>
+      <p class="recipe"><b>Recipe.</b> 2.4px stroke at roughly +2 stops, a 1px inner stroke a little hotter still, and an SDR blur beneath it. The blur does the atmosphere, the HDR stroke does the source.</p>
+    </div>
+  </article>
+
+  <!-- 2 -->
+  <article class="specimen">
+    <div class="plate">
+      <div class="pill"><span class="dot"></span> Recording</div>
+    </div>
+    <div class="meta">
+      <h2>Recording</h2>
+      <p>Status by luminance instead of size or saturation. A 9px dot that outshines the label pulls the eye from across a room, and survives being placed on light or dark backgrounds.</p>
+      <p class="recipe"><b>Recipe.</b> One dot at about +1 stop, slow opacity pulse, soft SDR corona. The pill and text stay entirely in standard range so nothing else competes.</p>
+    </div>
+  </article>
+
+  <!-- 3 -->
+  <article class="specimen">
+    <div class="plate">
+      <div class="filament">
+        <div class="halo"></div>
+        <svg viewBox="0 0 130 130" aria-hidden="true">
+          <path d="M44 84 C30 66, 36 40, 58 34 C82 27, 100 46, 94 68 C90 82, 80 86, 78 96
+                   C77 103, 72 106, 65 106 C58 106, 53 103, 52 96 C50 87, 48 88, 44 84 Z"
+                fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>
+          <path d="M54 74 C58 62, 64 82, 68 68 C71 58, 74 74, 78 66"
+                fill="none" stroke="var(--hdr-max)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M52 100 h26" stroke="rgba(255,255,255,.2)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="meta">
+      <h2>Filament</h2>
+      <p>The outline is drawn in dim grey; the coil inside is the only thing above white. It stops looking like a picture of a bulb and starts looking like a bulb that is on.</p>
+      <p class="recipe"><b>Recipe.</b> Glass at 14% white, filament at the headroom ceiling, wide SDR halo at 30%. Total emissive area is under 2% of the icon.</p>
+    </div>
+  </article>
+
+  <!-- 4 -->
+  <article class="specimen">
+    <div class="plate">
+      <div class="chip">
+        <div class="body"></div>
+        <div class="glyph">⌘</div>
+        <div class="spec-bloom"></div>
+        <div class="spec"></div>
+      </div>
+    </div>
+    <div class="meta">
+      <h2>Bevel</h2>
+      <p>A glass tile whose top edge catches a light source that is not in the frame. This is the most transferable pattern — any existing icon can take one specular streak without a redesign.</p>
+      <p class="recipe"><b>Recipe.</b> A 3px highlight running to the headroom ceiling at its centre and falling to transparent at both ends, rotated with the bevel. Blur behind, hard edge in front.</p>
+    </div>
+  </article>
+
+  <!-- 5 -->
+  <article class="specimen">
+    <div class="plate">
+      <div class="ring">
+        <div class="arcglow"></div>
+        <svg viewBox="0 0 132 132" aria-hidden="true">
+          <defs>
+            <linearGradient id="sweep" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0%"  stop-color="rgba(120,190,220,.10)"/>
+              <stop offset="55%" stop-color="rgba(140,215,245,.45)"/>
+              <stop offset="100%" stop-color="var(--hdr-cyan)"/>
+            </linearGradient>
+          </defs>
+          <circle cx="66" cy="66" r="48" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+          <circle cx="66" cy="66" r="48" fill="none" stroke="url(#sweep)" stroke-width="7"
+                  stroke-linecap="round" stroke-dasharray="228 302" transform="rotate(-96 66 66)"/>
+        </svg>
+      </div>
+    </div>
+    <div class="meta">
+      <h2>Sweep</h2>
+      <p>A progress ring where brightness, not just colour, travels along the arc. The leading tip crosses into headroom so completion feels like something arriving rather than a bar filling.</p>
+      <p class="recipe"><b>Recipe.</b> One gradient stroke, standard range for most of its length, crossing paper white only in the final third. Keep the transition slow or the tip looks detached.</p>
+    </div>
+  </article>
+
+</div>
+
+<footer>
+  <h3>What to watch for</h3>
+  <ul>
+    <li>Every specimen is legible with the clamp on. If an icon needs the boost to be readable, it is broken on most screens.</li>
+    <li>The emissive area is always small. Large bright regions read as a rendering fault, not as light.</li>
+    <li>The pairing that sells the illusion is a hard HDR core with a soft standard-range bloom around it. HDR alone looks flat; bloom alone looks like a sticker.</li>
+    <li>Low Power Mode, the Reduce White Point setting, a hot phone, and high screen brightness all shrink your headroom. Design for the boost to disappear.</li>
+  </ul>
+  <h3>Browser support, honestly</h3>
+  <p>Safari on Apple hardware is the reliable path — it maps Rec.2100 CSS colours into extended dynamic range. Chrome on Windows HDR has improved but is inconsistent, and the effect never appears on a display with no headroom. The readout at the top tells you what your current browser admits to.</p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  var set = function (id, text, ok) {
+    var el = document.getElementById(id);
+    el.textContent = text;
+    if (ok !== undefined) el.className = ok ? 'yes' : 'no';
+  };
+
+  var hi = window.matchMedia && window.matchMedia('(dynamic-range: high)').matches;
+  set('r-range', hi ? 'high dynamic range' : 'standard range only', hi);
+
+  var col = window.CSS && CSS.supports && CSS.supports('color', 'color(rec2100-hlg 1 1 1)');
+  set('r-color', col ? 'supported' : 'not supported', col);
+
+  var lim = window.CSS && CSS.supports && CSS.supports('dynamic-range-limit', 'no-limit');
+  set('r-limit', lim ? 'supported' : 'not supported', lim);
+
+  var btn = document.getElementById('toggle');
+  btn.addEventListener('click', function () {
+    var clamped = document.body.classList.toggle('clamped');
+    btn.setAttribute('aria-pressed', String(clamped));
+    btn.textContent = clamped ? 'Release to extended range' : 'Clamp to standard range';
+    set('r-mode', clamped ? 'clamped to standard' : 'extended');
+  });
+})();
+</script>
+</body>
+</html>
