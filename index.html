@@ -3,256 +3,509 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>HDR icon lab</title>
+<title>Headroom lab — one variable at a time</title>
 <style>
-:root {
+:root{
   --ink:#e9e7e2; --dim:#8d8a83; --faint:#5b5852; --edge:#2b2e32; --page:#08090a;
+  --sur-h:208;          /* surround hue, driven by the slider */
+  --veil:.55;           /* counter-dim depth, driven by the slider */
+  --beat:3.2s;          /* tempo, driven by the slider */
+  --core-c:255,244,222; /* SDR bloom colour, follows the chosen source */
 }
 *{box-sizing:border-box}
 html{background:var(--page)}
-body{margin:0;padding:0 22px 90px;background:var(--page);color:var(--ink);
+body{margin:0;padding:0 20px 100px;background:var(--page);color:var(--ink);
   font:400 16px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased}
-.wrap{max-width:900px;margin:0 auto}
-header{padding:64px 0 30px;max-width:58ch}
+.wrap{max-width:880px;margin:0 auto}
+header{padding:60px 0 26px;max-width:56ch}
 h1{margin:0 0 16px;font-size:clamp(28px,6.4vw,42px);font-weight:500;letter-spacing:-.022em;line-height:1.1}
 header p{margin:0 0 12px;color:var(--dim);font-size:16px}
+.note{color:var(--faint);font-size:13.5px;margin:0 0 26px;max-width:58ch}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 
-/* ---- the light layer: an HDR asset, cut to shape by a mask ---- */
+/* ---------- the light layer ---------- */
 .light{position:absolute;inset:0;pointer-events:none;
   -webkit-mask-size:100% 100%;mask-size:100% 100%;
   -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-.m-crack{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27126%27%20height%3D%27126%27%20viewBox%3D%270%200%20126%20126%27%3E%3Cpath%20d%3D%27M46%2040%20L57%2053%20L50%2065%20L63%2079%20L59%2090%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%275%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3Cpath%20d%3D%27M57%2053%20L72%2059%20L79%2051%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%273.2%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20opacity%3D%270.7%27%2F%3E%3C%2Fsvg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27126%27%20height%3D%27126%27%20viewBox%3D%270%200%20126%20126%27%3E%3Cpath%20d%3D%27M46%2040%20L57%2053%20L50%2065%20L63%2079%20L59%2090%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%275%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3Cpath%20d%3D%27M57%2053%20L72%2059%20L79%2051%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%273.2%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20opacity%3D%270.7%27%2F%3E%3C%2Fsvg%3E')}
-.m-coil{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27126%27%20height%3D%27126%27%20viewBox%3D%270%200%20126%20126%27%3E%3Cpath%20d%3D%27M50%2072%20C55%2058%2C62%2082%2C67%2066%20C71%2054%2C75%2074%2C80%2064%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%274.2%27%20stroke-linecap%3D%27round%27%2F%3E%3C%2Fsvg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27126%27%20height%3D%27126%27%20viewBox%3D%270%200%20126%20126%27%3E%3Cpath%20d%3D%27M50%2072%20C55%2058%2C62%2082%2C67%2066%20C71%2054%2C75%2074%2C80%2064%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%274.2%27%20stroke-linecap%3D%27round%27%2F%3E%3C%2Fsvg%3E')}
-.m-arc{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27126%27%20height%3D%27126%27%20viewBox%3D%270%200%20126%20126%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%271%27%20x2%3D%271%27%20y2%3D%270%27%3E%3Cstop%20offset%3D%270%25%27%20stop-color%3D%27%23fff%27%20stop-opacity%3D%270%27%2F%3E%3Cstop%20offset%3D%2762%25%27%20stop-color%3D%27%23fff%27%20stop-opacity%3D%270.25%27%2F%3E%3Cstop%20offset%3D%27100%25%27%20stop-color%3D%27%23fff%27%20stop-opacity%3D%271%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2760%27%20r%3D%2744%27%20fill%3D%27none%27%20stroke%3D%27url%28%23g%29%27%20stroke-width%3D%279%27%20stroke-linecap%3D%27round%27%20stroke-dasharray%3D%27208%20278%27%20transform%3D%27rotate%28-96%2060%2060%29%27%2F%3E%3C%2Fsvg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27126%27%20height%3D%27126%27%20viewBox%3D%270%200%20126%20126%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%271%27%20x2%3D%271%27%20y2%3D%270%27%3E%3Cstop%20offset%3D%270%25%27%20stop-color%3D%27%23fff%27%20stop-opacity%3D%270%27%2F%3E%3Cstop%20offset%3D%2762%25%27%20stop-color%3D%27%23fff%27%20stop-opacity%3D%270.25%27%2F%3E%3Cstop%20offset%3D%27100%25%27%20stop-color%3D%27%23fff%27%20stop-opacity%3D%271%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%2760%27%20cy%3D%2760%27%20r%3D%2744%27%20fill%3D%27none%27%20stroke%3D%27url%28%23g%29%27%20stroke-width%3D%279%27%20stroke-linecap%3D%27round%27%20stroke-dasharray%3D%27208%20278%27%20transform%3D%27rotate%28-96%2060%2060%29%27%2F%3E%3C%2Fsvg%3E')}
-.m-dot{-webkit-mask-image:radial-gradient(circle,#fff 42%,transparent 70%);
-  mask-image:radial-gradient(circle,#fff 42%,transparent 70%)}
-.m-streak{-webkit-mask-image:linear-gradient(90deg,transparent,#fff 36%,#fff 60%,transparent);
-  mask-image:linear-gradient(90deg,transparent,#fff 36%,#fff 60%,transparent)}
 .light img,.light video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-body.src-avif .light video{display:none}
-body.src-video .light img{display:none}
-body.clamped .stage,body.clamped .strip{dynamic-range-limit:standard}
+body.src-img .light video{display:none}
+body.src-vid .light img{display:none}
+body.clamped .stage,body.clamped .strip,body.clamped .swatch{dynamic-range-limit:standard}
 
-/* ---- reference strip ---- */
+.m-dot{-webkit-mask-image:radial-gradient(circle,#fff 40%,transparent 70%);
+  mask-image:radial-gradient(circle,#fff 40%,transparent 70%)}
+.m-blip{-webkit-mask-image:linear-gradient(90deg,transparent,#fff 48%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#fff 48%,transparent)}
+.m-ring{-webkit-mask-image:radial-gradient(closest-side,transparent 58%,#fff 66%,#fff 82%,transparent 90%);
+  mask-image:radial-gradient(closest-side,transparent 58%,#fff 66%,#fff 82%,transparent 90%)}
+.m-crack{-webkit-mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27126%27%20height%3D%27126%27%20viewBox%3D%270%200%20126%20126%27%3E%3Cpath%20d%3D%27M46%2040%20L57%2053%20L50%2065%20L63%2079%20L59%2090%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%275%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3Cpath%20d%3D%27M57%2053%20L72%2059%20L79%2051%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%273.2%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20opacity%3D%270.7%27%2F%3E%3C%2Fsvg%3E');mask-image:url('data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27126%27%20height%3D%27126%27%20viewBox%3D%270%200%20126%20126%27%3E%3Cpath%20d%3D%27M46%2040%20L57%2053%20L50%2065%20L63%2079%20L59%2090%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%275%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%3Cpath%20d%3D%27M57%2053%20L72%2059%20L79%2051%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%273.2%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%20opacity%3D%270.7%27%2F%3E%3C%2Fsvg%3E')}
+
+/* ---------- reference strip ---------- */
 .strip{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
-  border:1px solid var(--edge);border-radius:12px;overflow:hidden;margin-bottom:14px}
-.sw{height:96px;position:relative;display:grid;align-items:end;padding:8px}
+  border:1px solid var(--edge);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.sw{height:88px;position:relative;display:grid;align-items:end;padding:8px}
 .sw span{position:relative;z-index:2;font-size:12px;color:#000;background:rgba(255,255,255,.55);
   border-radius:5px;padding:2px 6px;justify-self:start}
 .sw.paper{background:#fff}
 .sw video,.sw img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.note{color:var(--faint);font-size:13.5px;margin:0 0 30px;max-width:56ch}
 
-.controls{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 44px}
+/* ---------- controls ---------- */
+.controls{border:1px solid var(--edge);border-radius:14px;padding:16px 16px 6px;margin:0 0 40px;
+  background:#0c0d0f}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.row > label{font-size:13px;color:var(--dim);min-width:112px}
 button{appearance:none;border:1px solid var(--edge);background:#1c1e21;color:var(--ink);
-  font:inherit;font-size:14.5px;padding:9px 17px;border-radius:999px;cursor:pointer}
-button[aria-pressed="true"]{background:#2e3237;border-color:#464b51}
-button:focus-visible{outline:2px solid #7fe4ff;outline-offset:2px}
+  font:inherit;font-size:14px;padding:8px 15px;border-radius:999px;cursor:pointer}
+button[aria-pressed="true"]{background:#2e3237;border-color:#575d64}
+button:focus-visible,input:focus-visible{outline:2px solid #7fe4ff;outline-offset:2px}
+.swatches{display:flex;gap:8px}
+.swatch{width:38px;height:38px;border-radius:10px;position:relative;overflow:hidden;padding:0;
+  border:1px solid var(--edge);background:#000}
+.swatch img,.swatch video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.swatch[aria-pressed="true"]{outline:2px solid #7fe4ff;outline-offset:2px}
+input[type=range]{flex:1;min-width:140px;accent-color:#7fe4ff}
+.val{font-size:12.5px;color:var(--faint);min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
 
-/* ---- specimens ---- */
-.specimen{display:grid;grid-template-columns:168px 1fr;gap:30px;align-items:center;
-  padding:32px 0;border-bottom:1px solid var(--edge)}
-.specimen:first-of-type{border-top:1px solid var(--edge)}
-.plate{height:168px;display:grid;place-items:center;border-radius:14px;
-  background:radial-gradient(120% 120% at 50% 40%,#0e0f11,#060607)}
-.meta h2{margin:0 0 7px;font-size:20px;font-weight:500;letter-spacing:-.01em}
-.meta p{margin:0 0 11px;color:var(--dim);font-size:15px;max-width:50ch}
-.recipe{font-size:13.5px;color:var(--faint);border-left:2px solid var(--edge);padding-left:12px}
-.recipe b{color:var(--dim);font-weight:500}
+/* ---------- ladder ---------- */
+.rung{padding:30px 0;border-bottom:1px solid var(--edge)}
+.rung:first-of-type{border-top:1px solid var(--edge)}
+.rung h2{margin:0 0 6px;font-size:19px;font-weight:500;letter-spacing:-.01em}
+.rung > p{margin:0 0 16px;color:var(--dim);font-size:15px;max-width:54ch}
+.rung .look{font-size:13.5px;color:var(--faint);border-left:2px solid var(--edge);
+  padding-left:12px;margin:16px 0 0;max-width:54ch}
+.rung .look b{color:var(--dim);font-weight:500}
 
-.tile{width:112px;height:112px;border-radius:26px;position:relative;overflow:hidden;
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:2px;
+  border:1px solid var(--edge);border-radius:14px;overflow:hidden}
+.pair.solo{grid-template-columns:1fr}
+.pane{position:relative;height:172px;overflow:hidden;
+  background:radial-gradient(130% 130% at 50% 42%,#101113,#050506)}
+.pane .tag{position:absolute;top:9px;left:11px;z-index:6;font-size:11.5px;color:var(--faint)}
+.rim,.veil,.bloom,.core{position:absolute}
+.rim{left:50%;top:50%;width:104px;height:104px;margin:-52px 0 0 -52px;border-radius:50%;z-index:0;
+  border:1px solid hsl(var(--sur-h) 20% 40% / .45)}
+.rim::after{content:"";position:absolute;left:50%;top:-16px;width:1px;height:12px;
+  background:hsl(var(--sur-h) 20% 40% / .45)}
+.veil{inset:0;z-index:1;background:#000;opacity:0}
+.bloom{left:50%;top:50%;width:132px;height:132px;margin:-66px 0 0 -66px;z-index:2;
+  border-radius:50%;filter:blur(15px);opacity:.06;
+  background:radial-gradient(closest-side,rgba(var(--core-c),.6),transparent 72%)}
+.core{left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;z-index:3}
+.sdrcore{position:absolute;inset:0;border-radius:50%;opacity:.06;
+  background:radial-gradient(circle,rgb(var(--core-c)) 40%,transparent 70%)}
+.pane .light{opacity:.06}
+
+/* which layers exist in each rung */
+.f-flat .bloom,.f-flat .light{display:none}
+.f-flat .sdrcore{opacity:.9}
+.f-bloom .light{display:none}
+.f-hdr .sdrcore{display:none}
+
+/* animations */
+@keyframes rise{from{opacity:.05}to{opacity:1}}
+@keyframes bloomRise{from{opacity:.05}to{opacity:.75}}
+@keyframes veilRise{from{opacity:0}to{opacity:var(--veil)}}
+@keyframes contract{from{transform:scale(1.55)}to{transform:scale(.66)}}
+@keyframes spikeCore{0%,58%{opacity:.02}84%{opacity:.26}94%,96.5%{opacity:1}98%,100%{opacity:.02}}
+@keyframes spikeBloom{0%,58%{opacity:.02}84%{opacity:.2}94%,96.5%{opacity:.75}98%,100%{opacity:.02}}
+@keyframes spikeVeil{0%,58%{opacity:0}84%{opacity:calc(var(--veil)*.5)}94%,96.5%{opacity:var(--veil)}98%,100%{opacity:0}}
+@keyframes spikeScale{0%,58%{transform:scale(1.55)}94%,96.5%{transform:scale(.62)}100%{transform:scale(1.55)}}
+
+.f-bloom .sdrcore,.f-bloom .bloom,
+.f-hdr .light,.f-hdr .bloom{animation:rise var(--beat) ease-in-out infinite alternate}
+.f-bloom .bloom,.f-hdr .bloom{animation-name:bloomRise}
+.f-dim .veil{animation:veilRise var(--beat) ease-in-out infinite alternate}
+.f-contract .light{animation:rise var(--beat) ease-in-out infinite alternate,
+                             contract var(--beat) ease-in-out infinite alternate}
+.f-shift .veil{background:hsl(var(--sur-h) 72% 9%)}
+.f-shift .rim{border-color:hsl(var(--sur-h) 55% 52% / .5)}
+
+.f-trough .light{animation:spikeCore var(--beat2) linear infinite,spikeScale var(--beat2) linear infinite}
+.f-trough .bloom{animation:spikeBloom var(--beat2) linear infinite}
+.f-trough .veil{animation:spikeVeil var(--beat2) linear infinite}
+.f-trough{--beat2:calc(var(--beat) * 2.4)}
+
+/* freeze at peak */
+body.frozen .pane *{animation-play-state:paused!important}
+body.frozen .pane .light,body.frozen .pane .bloom,
+body.frozen .pane .veil,body.frozen .pane .sdrcore{animation-delay:calc(var(--beat) * -1)!important}
+body.frozen .f-trough .light,body.frozen .f-trough .bloom,body.frozen .f-trough .veil{
+  animation-delay:calc(var(--beat2) * -.955)!important}
+body.frozen .show *{animation-play-state:paused!important;animation-delay:calc(var(--show) * -.26)!important}
+
+/* ---------- finales ---------- */
+.showcase{padding:34px 0;border-bottom:1px solid var(--edge)}
+.showcase h2{margin:0 0 6px;font-size:22px;font-weight:500;letter-spacing:-.014em}
+.showcase > p{margin:0 0 16px;color:var(--dim);font-size:15px;max-width:54ch}
+.stagebox{border:1px solid var(--edge);border-radius:16px;overflow:hidden;
+  height:230px;position:relative;display:grid;place-items:center;
+  background:radial-gradient(130% 130% at 50% 40%,#101113,#040405)}
+.show{--show:6s;position:relative;width:100%;height:100%;display:grid;place-items:center}
+
+/* Kindling */
+.kind{position:relative;width:170px;height:170px}
+.kind .tile{position:absolute;inset:22px;border-radius:30px;
   background:linear-gradient(160deg,#24262a,#131417 60%,#0d0e10);
-  box-shadow:inset 0 1px 0 #34373c,0 12px 26px rgba(0,0,0,.6)}
-.bloom{position:absolute;inset:0;filter:blur(8px)}
-.bloom.ember{background:radial-gradient(34% 40% at 50% 51%,rgba(255,124,44,.46),transparent 72%)}
+  box-shadow:inset 0 1px 0 #35383d,0 14px 30px rgba(0,0,0,.6)}
+.kind .kveil{position:absolute;inset:-400px;z-index:2;background:hsl(var(--sur-h) 70% 7%);opacity:0;
+  animation:kveil var(--show) ease-in-out infinite}
+.kind .kbloom{position:absolute;inset:22px;z-index:3;filter:blur(11px);opacity:0;
+  background:radial-gradient(38% 44% at 50% 52%,rgba(var(--core-c),.55),transparent 72%);
+  animation:kbloom var(--show) ease-in-out infinite}
+.kind .track{position:absolute;inset:22px;z-index:4;overflow:hidden}
+.kind .hot{position:absolute;top:0;bottom:0;left:0;width:74px;animation:krun var(--show) ease-in-out infinite}
+@keyframes krun{0%{transform:translateX(-80px)}70%{transform:translateX(130px)}100%{transform:translateX(130px)}}
+@keyframes kveil{0%{opacity:0}22%{opacity:calc(var(--veil)*.8)}62%{opacity:var(--veil)}82%,100%{opacity:0}}
+@keyframes kbloom{0%{opacity:.05}30%{opacity:.5}62%{opacity:.8}84%,100%{opacity:.05}}
 
-.pill{display:inline-flex;align-items:center;gap:9px;padding:9px 16px 9px 13px;border-radius:999px;
-  background:#191b1e;border:1px solid #2b2e32;font-size:14px}
-.dot{width:10px;height:10px;border-radius:50%;position:relative;background:#4a2630}
-.dot .corona,.dot .light{animation:beat 2.4s ease-in-out infinite}
-@keyframes beat{0%,100%{opacity:1}50%{opacity:.38}}
-@media(prefers-reduced-motion:reduce){.dot .corona,.dot .light{animation:none}}
-.dot .corona{position:absolute;inset:-8px;border-radius:50%;
-  background:radial-gradient(closest-side,rgba(255,92,124,.5),transparent)}
+/* Settled */
+.settle{position:relative;width:190px;height:190px;display:grid;place-items:center}
+.settle .plate{position:absolute;inset:34px;border-radius:50%;z-index:0;
+  border:1px solid hsl(var(--sur-h) 18% 42% / .4)}
+.settle .label{position:relative;z-index:6;font-size:14px;color:#b9b6b0;letter-spacing:.01em}
+.settle .sveil{position:absolute;inset:-400px;z-index:2;background:#000;opacity:0;
+  animation:sveil var(--show) cubic-bezier(.4,0,.2,1) infinite}
+.settle .sbloom{position:absolute;inset:44px;z-index:3;border-radius:50%;filter:blur(13px);opacity:0;
+  background:radial-gradient(closest-side,rgba(var(--core-c),.6),transparent);
+  animation:sbloom var(--show) ease-out infinite}
+.settle .ringwrap{position:absolute;inset:14px;z-index:4;animation:sring var(--show) cubic-bezier(.5,0,.15,1) infinite}
+.settle .flash{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;z-index:5;
+  animation:sflash var(--show) linear infinite}
+@keyframes sring{0%{transform:scale(1.35);opacity:.04}6%{opacity:.14}
+  22%{transform:scale(.2);opacity:.6}25%{transform:scale(.14);opacity:0}100%{transform:scale(.14);opacity:0}}
+@keyframes sflash{0%,22%{opacity:0}25%{opacity:1}28%{opacity:1}40%{opacity:0}100%{opacity:0}}
+@keyframes sbloom{0%,20%{opacity:0}26%{opacity:.9}46%{opacity:0}100%{opacity:0}}
+@keyframes sveil{0%{opacity:0}20%{opacity:calc(var(--veil)*.7)}26%,29%{opacity:var(--veil)}
+  48%,100%{opacity:0}}
 
-.bulb{position:relative;width:126px;height:126px}
-.bulb .halo{position:absolute;inset:0;filter:blur(11px);
-  background:radial-gradient(closest-side,rgba(255,236,190,.30),transparent 70%)}
-.bulb svg{position:absolute;inset:0;width:100%;height:100%}
-
-.chip{width:112px;height:112px;border-radius:27px;position:relative;overflow:hidden;
-  border:1px solid rgba(255,255,255,.09);box-shadow:0 14px 28px rgba(0,0,0,.55);
-  background:radial-gradient(130% 100% at 20% 0%,#3a3f47,#191b1f 55%,#101114)}
-.chip .glyph{position:absolute;inset:0;display:grid;place-items:center;
-  color:rgba(255,255,255,.28);font-size:38px;font-weight:300}
-.chip .streak{position:absolute;top:14px;left:18px;right:24px;height:9px;transform:rotate(-9deg)}
-.chip .streak-bloom{position:absolute;top:9px;left:16px;right:16px;height:22px;transform:rotate(-9deg);
-  filter:blur(7px);background:radial-gradient(closest-side,rgba(255,255,255,.28),transparent)}
-
-.ring{position:relative;width:126px;height:126px}
-.ring .base{position:absolute;inset:0}
-.ring .arcbloom{position:absolute;inset:6px;border-radius:50%;filter:blur(10px);opacity:.75;
-  background:conic-gradient(from -96deg,rgba(120,220,255,.55) 0deg,transparent 68deg)}
-
-footer{margin-top:56px;padding-top:26px;border-top:1px solid var(--edge);
+/* ---------- prose blocks ---------- */
+.sectionhead{padding:56px 0 6px;max-width:56ch}
+.sectionhead h2{font-size:25px;font-weight:500;letter-spacing:-.018em;margin:0 0 12px}
+.sectionhead p{color:var(--dim);margin:0 0 8px;font-size:15.5px}
+footer{margin-top:52px;padding-top:26px;border-top:1px solid var(--edge);
   color:var(--dim);font-size:14.5px;max-width:64ch}
-footer h3{font-size:16px;font-weight:500;color:var(--ink);margin:0 0 9px}
-footer ul{padding-left:18px;margin:0 0 18px} footer li{margin-bottom:7px}
-@media(max-width:600px){.specimen{grid-template-columns:1fr;gap:18px}.plate{height:196px}}
+footer h3{font-size:16px;font-weight:500;color:var(--ink);margin:26px 0 9px}
+footer h3:first-child{margin-top:0}
+footer ul{padding-left:18px;margin:0 0 14px}
+footer li{margin-bottom:7px}
+
+@media(prefers-reduced-motion:reduce){
+  .pane *,.show *{animation:none!important}
+  .pane .light,.pane .sdrcore{opacity:.85}
+  .pane .bloom{opacity:.6}
+  .pane .veil{opacity:var(--veil)}
+  .kind .kbloom,.settle .sbloom{opacity:.7}
+  .settle .flash{opacity:1}.settle .ringwrap{opacity:0}
+}
+@media(max-width:620px){
+  .pane{height:146px}
+  .stagebox{height:210px}
+  .row > label{min-width:100%}
+}
 </style>
 </head>
-<body class="src-avif">
+<body class="src-img">
 <div class="wrap">
 
 <header>
-  <h1>Five icons that use the light above white</h1>
-  <p>The glow here comes from a real HDR asset — a tiny Rec.2100 image and video, both encoded above SDR reference white — masked into the shape of each icon. Everything else is ordinary CSS.</p>
-  <p>Dark room, screen brightness near half, Low Power Mode off.</p>
+  <h1>One variable at a time</h1>
+  <p>Each step below adds exactly one technique to the step before it, and shows both in the same frame. Nothing here is a before-and-after you have to hold in memory — the comparison is always simultaneous, because sequential comparison of brightness is unreliable and side-by-side is not.</p>
+  <p>Dark room. Screen brightness near half. Low Power Mode off.</p>
 </header>
 
 <div class="strip">
   <div class="sw paper"><span>#ffffff</span></div>
-  <div class="sw"><img alt="" src="data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAbAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAABgAAAAYAAAABBwaXhpAAAAAAMKCgoAAAAMYXYxQ4EATAAAAAATY29scm5jbHgACQAQAAkAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAjbWRhdAoJGBmv326EiASCMg4QoAAAEAAAAADiOy8haw=="><span>HDR image</span></div>
-  <div class="sw"><video muted autoplay loop playsinline disableremoteplayback src="data:video/mp4;base64,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"></video><span>HDR video</span></div>
+  <div class="sw" id="ref-img"><span>HDR image</span></div>
+  <div class="sw" id="ref-vid"><span>HDR video</span></div>
 </div>
-<p class="note">Read this first. If either right-hand patch looks brighter than the pure white one, that source is reaching your display's headroom — pick it below. If both match the white patch, this iPhone isn't granting headroom to the page and nothing further down will glow.</p>
+<p class="note">Read this first. If either right-hand patch looks brighter than the pure white one, that source is reaching your display's headroom. If both match the white patch, this device isn't granting headroom to the page and everything below will look flat.</p>
 
 <div class="controls">
-  <button id="b-avif" aria-pressed="true">Use HDR image</button>
-  <button id="b-video" aria-pressed="false">Use HDR video</button>
-  <button id="b-clamp" aria-pressed="false">Clamp to standard range</button>
+  <div class="row">
+    <label for="b-img">Source</label>
+    <button id="b-img" aria-pressed="true">HDR image</button>
+    <button id="b-vid" aria-pressed="false">HDR video</button>
+  </div>
+  <div class="row">
+    <label>Light</label>
+    <div class="swatches" id="swatches"></div>
+  </div>
+  <div class="row">
+    <label for="s-hue">Surround hue</label>
+    <input id="s-hue" type="range" min="0" max="360" value="208">
+    <span class="val" id="v-hue">208°</span>
+  </div>
+  <div class="row">
+    <label for="s-dim">Counter-dim</label>
+    <input id="s-dim" type="range" min="0" max="85" value="55">
+    <span class="val" id="v-dim">55%</span>
+  </div>
+  <div class="row">
+    <label for="s-beat">Tempo</label>
+    <input id="s-beat" type="range" min="12" max="70" value="32">
+    <span class="val" id="v-beat">3.2s</span>
+  </div>
+  <div class="row">
+    <label for="b-clamp">Compare</label>
+    <button id="b-clamp" aria-pressed="false">Clamp to standard range</button>
+    <button id="b-freeze" aria-pressed="false">Hold at peak</button>
+  </div>
 </div>
 
-<div class="stage">
+<div class="sectionhead" style="padding-top:0">
+  <h2>The ladder</h2>
+  <p>Left pane is the previous step. Right pane is the new one. Everything else is held constant.</p>
+</div>
 
-  <article class="specimen">
-    <div class="plate"><div class="tile">
-      <div class="bloom ember"></div>
-      <div class="light m-crack">
-      <img alt="" src="data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAiAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAABgAAAAYAAAABBwaXhpAAAAAAMKCgoAAAAMYXYxQ4EATAAAAAATY29scm5jbHgACQAQAAkAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAqbWRhdAoJGBmv326EiASCMhUQoAAAEAAAAADijwafYdMzn8eYJmA=">
-      <video muted autoplay loop playsinline disableremoteplayback src="data:video/mp4;base64,AAAAHGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAABLdtb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAH0AABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAD4XRyYWsAAABcdGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAH0AAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAYAAAAGAAAAAAACRlZHRzAAAAHGVsc3QAAAAAAAAAAQAAB9AAAAgAAAEAAAAAA1ltZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAADAAAABgAFXEAAAAAAAtaGRscgAAAAAAAAAAdmlkZQAAAAAAAAAAAAAAAFZpZGVvSGFuZGxlcgAAAAMEbWluZgAAABR2bWhkAAAAAQAAAAAAAAAAAAAAJGRpbmYAAAAcZHJlZgAAAAAAAAABAAAADHVybCAAAAABAAACxHN0YmwAAAEQc3RzZAAAAAAAAAABAAABAGh2YzEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAYABgAEgAAABIAAAAAAAAAAEVTGF2YzYwLjMxLjEwMiBsaWJ4MjY1AAAAAAAAAAAAAAAY//8AAAB5aHZjQwECIAAAAJAAAAAAAB7wAPz9+voAAA8DoAABABhAAQwB//8CIAAAAwCQAAADAAADAB6VmAmhAAEALEIBAQIgAAADAJAAAAMAAAMAHqAwgYTZZWaSTK5qEiQSCAAAAwAIAAADAGBAogABAAdEAcFytCJAAAAACmZpZWwBAAAAABNjb2xybmNseAAJABIACQAAAAAUYnRydAAAAAAAAAaQAAAGkAAAABhzdHRzAAAAAAAAAAEAAAAYAAAEAAAAABRzdHNzAAAAAAAAAAEAAAABAAAAJHNkdHAAAAAAIBAQGBgYEBAYGBgQEBgYEBAYGBgQEBgYAAAAuGN0dHMAAAAAAAAAFQAAAAEAAAgAAAAAAQAAGAAAAAABAAAMAAAAAAIAAAAAAAAAAQAABAAAAAABAAAYAAAAAAEAAAwAAAAAAgAAAAAAAAABAAAEAAAAAAEAABQAAAAAAQAACAAAAAABAAAAAAAAAAEAAAQAAAAAAQAAGAAAAAABAAAMAAAAAAIAAAAAAAAAAQAABAAAAAABAAAUAAAAAAEAAAgAAAAAAQAAAAAAAAABAAAEAAAAABxzdHNjAAAAAAAAAAEAAAABAAAAGAAAAAEAAAB0c3RzegAAAAAAAAAAAAAAGAAAACgAAAARAAAADwAAAA8AAAAPAAAADwAAABMAAAAQAAAAEAAAABAAAAAQAAAAEwAAABEAAAAQAAAAEAAAABMAAAARAAAAEAAAABAAAAAQAAAAEwAAABEAAAAQAAAAEAAAABRzdGNvAAAAAAAAAAEAAATjAAAAYnVkdGEAAABabWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAtaWxzdAAAACWpdG9vAAAAHWRhdGEAAAABAAAAAExhdmY2MC4xNi4xMDAAAAAIZnJlZQAAAaxtZGF0AAAABk4BkwESgAAAABooAa8+6wJr3m/uHQ3/icRB9LSFjXRrDaL4hgAAAA0CAdApS+EMZ0DzYaiAAAAACwIB4GSdeGVAmB+wAAAACwAB4CT1X6LemSJgAAAACwAB4ETXX6LamSJgAAAACwAB4Ia3/UbwmSJgAAAADwIB0FCS1f3EMBnQ82GogAAAAAwCAeECJ1dfcZWYH7AAAAAMAAHgxvVV9It4mSJgAAAADAAB4ObVdfSLaJkiYAAAAAwAAeEiLdf3G8CZImAAAAAPAgHQcLJV19xDAZ/zYaiAAAAADQIB4YIlUtfcZUCYH7AAAAAMAAHhZvXX0i3gmSJgAAAADAAB4aItV/cbQJkiYAAAAA8CAdCYstVX3EMBn/NhqIAAAAANAgHiIidSV9xlwJgfsAAAAAwAAeHm9VX0i2iZImAAAAAMAAHiBtV19ItomSJgAAAADAAB4kIt1/cbwJkiYAAAAA8CAdC4slXX3EMBnfNhqIAAAAANAgHioiVS19xlQJgfsAAAAAwAAeKG9dfSLaCZImAAAAAMAAHiwi1X9xvAmSJg"></video>
-    </div>
-    </div></div>
-    <div class="meta">
-      <h2>Ember</h2>
-      <p>A matte ceramic tile with a hairline fracture that reads as molten rather than painted. The stone stays dull; only the crack carries light.</p>
-      <p class="recipe"><b>Recipe.</b> An amber HDR source masked by an angular stroked path with a branch at 70% opacity, so the branch runs cooler, over a soft standard-range blur. The blur makes the atmosphere, the masked HDR makes the source.</p>
-    </div>
-  </article>
+<div class="stage" id="ladder"></div>
 
-  <article class="specimen">
-    <div class="plate"><div class="pill">
-      <span class="dot"><span class="corona"></span>
-        <div class="light m-dot">
-      <img alt="" src="data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAhAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAABgAAAAYAAAABBwaXhpAAAAAAMKCgoAAAAMYXYxQ4EATAAAAAATY29scm5jbHgACQAQAAkAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAApbWRhdAoJGBmv326EiASCMhQQoAAAEAAAAADiokejPqt/ueemYA==">
-      <video muted autoplay loop playsinline disableremoteplayback src="data:video/mp4;base64,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"></video>
-    </div>
-      </span> Recording
-    </div></div>
-    <div class="meta">
-      <h2>Recording</h2>
-      <p>Status by luminance instead of size or saturation. A 10px dot that outshines its own label pulls the eye from across a room and works on any background.</p>
-      <p class="recipe"><b>Recipe.</b> One radial mask on a rose HDR source, with a standard-range corona behind it. The pill and text never leave standard range, so nothing competes.</p>
-    </div>
-  </article>
+<div class="sectionhead">
+  <h2>Two that use all of it</h2>
+  <p>The ladder isolates techniques. These combine them into objects with implied physics — which is the only reason any of it stops looking like a lighting effect and starts looking like light.</p>
+</div>
 
-  <article class="specimen">
-    <div class="plate"><div class="bulb">
-      <div class="halo"></div>
-      <svg viewBox="0 0 126 126" aria-hidden="true">
-        <path d="M42 82 C28 64,34 38,56 32 C80 25,98 44,92 66 C88 80,78 84,76 94
-                 C75 101,70 104,63 104 C56 104,51 101,50 94 C48 85,46 86,42 82 Z"
-              fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>
-        <path d="M50 98 h26" stroke="rgba(255,255,255,.2)" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      <div class="light m-coil">
-      <img alt="" src="data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAbAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAABgAAAAYAAAABBwaXhpAAAAAAMKCgoAAAAMYXYxQ4EATAAAAAATY29scm5jbHgACQAQAAkAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAjbWRhdAoJGBmv326EiASCMg4QoAAAEAAAAADiOy8haw==">
-      <video muted autoplay loop playsinline disableremoteplayback src="data:video/mp4;base64,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"></video>
-    </div>
-    </div></div>
-    <div class="meta">
-      <h2>Filament</h2>
-      <p>The glass is drawn in dim grey; only the coil sits above white. It stops looking like a picture of a bulb and starts looking like a bulb that is on.</p>
-      <p class="recipe"><b>Recipe.</b> Glass at 14% white, coil masked from the brightest source, wide standard-range halo at 30%. Emissive area is under 2% of the icon.</p>
-    </div>
-  </article>
+<section class="showcase">
+  <h2>Kindling</h2>
+  <p>A ceramic tile with a hairline fracture. Heat travels along the crack rather than filling it; the room falls away as the heat builds, and comes back when it passes.</p>
+  <div class="stagebox"><div class="show" style="--show:6s"><div class="kind">
+    <div class="tile"></div>
+    <div class="kveil"></div>
+    <div class="kbloom"></div>
+    <div class="track m-crack"><div class="hot"><div class="light m-blip" data-light></div></div></div>
+  </div></div></div>
+  <p class="look"><b>Everything at once.</b> Nested masks (the crack holds the shape, a sliding gradient decides where the light is), a surround that darkens and cools through the travel, and an SDR bloom that leads the hot spot. Clamp it: the crack is still a crack.</p>
+</section>
 
-  <article class="specimen">
-    <div class="plate"><div class="chip">
-      <div class="glyph">&#8984;</div>
-      <div class="streak-bloom"></div>
-      <div class="streak">
-        <div class="light m-streak">
-      <img alt="" src="data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAbAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAABgAAAAYAAAABBwaXhpAAAAAAMKCgoAAAAMYXYxQ4EATAAAAAATY29scm5jbHgACQAQAAkAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAAjbWRhdAoJGBmv326EiASCMg4QoAAAEAAAAADiOy8haw==">
-      <video muted autoplay loop playsinline disableremoteplayback src="data:video/mp4;base64,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"></video>
-    </div>
-      </div>
-    </div></div>
-    <div class="meta">
-      <h2>Bevel</h2>
-      <p>A glass tile catching a light source that is not in the frame. The most transferable pattern here — any existing icon can take one specular streak without a redesign.</p>
-      <p class="recipe"><b>Recipe.</b> A linear-gradient mask over the HDR source, rotated with the bevel, blurred copy behind it. Hard edge in front, soft edge behind.</p>
-    </div>
-  </article>
+<section class="showcase">
+  <h2>Settled</h2>
+  <p>A payment confirming. A ring collapses inward, and the moment it reaches the centre the whole surround drops out for a fifth of a second while a single point fires above white. Then four seconds of nothing.</p>
+  <div class="stagebox"><div class="show" style="--show:5s"><div class="settle">
+    <div class="plate"></div>
+    <div class="sveil"></div>
+    <div class="sbloom"></div>
+    <div class="ringwrap"><div class="light m-ring" data-light></div></div>
+    <div class="flash"><div class="light m-dot" data-light></div></div>
+    <span class="label">Paid</span>
+  </div></div></div>
+  <p class="look"><b>The budget, spent once.</b> The word is fully legible before, during and after — the light carries no information. Peak area is under 1% of the frame and lasts about 200ms, which is the one thing displays let you push hardest. Everything you have, once per event, then out of the way.</p>
+</section>
 
-  <article class="specimen">
-    <div class="plate"><div class="ring">
-      <div class="arcbloom"></div>
-      <svg class="base" viewBox="0 0 126 126" aria-hidden="true">
-        <circle cx="63" cy="63" r="46" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
-      </svg>
-      <div class="light m-arc">
-      <img alt="" src="data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAAjAAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAABgAAAAYAAAABBwaXhpAAAAAAMKCgoAAAAMYXYxQ4EATAAAAAATY29scm5jbHgACQAQAAkAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAArbWRhdAoJGBmv326EiASCMhYQoAAAEAAAAADiOJ7ziPiIGSVMe3CA">
-      <video muted autoplay loop playsinline disableremoteplayback src="data:video/mp4;base64,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"></video>
-    </div>
-    </div></div>
-    <div class="meta">
-      <h2>Sweep</h2>
-      <p>A progress ring where brightness travels along the arc, not just colour. The leading tip crosses into headroom, so completion feels like something arriving rather than a bar filling.</p>
-      <p class="recipe"><b>Recipe.</b> A gradient mask running from fully transparent to opaque, so the same HDR source fades from invisible through dim to above-white along one stroke.</p>
-    </div>
-  </article>
-
+<div class="sectionhead">
+  <h2>Now screenshot this page</h2>
+  <p>Take a screenshot and open it. The glow is gone. That gap is the entire problem: this cannot exist in a Figma file, a spec, a design review deck, a marketing shot, an App Store screenshot, or a bug report. Every artefact your team passes around is a lossy capture of the thing you designed.</p>
+  <p>Then run the page again in daylight, at 20% brightness, in Low Power Mode, and with Reduce White Point on. Watch how much of your budget survives each one. That fragility, not the glow, is what to design around.</p>
 </div>
 
 <footer>
-  <h3>What to watch for</h3>
+  <h3>The rules this lab is testing</h3>
   <ul>
-    <li>Every icon is legible with the clamp on. If one needs the boost to be readable, it is broken on most screens.</li>
-    <li>The emissive area is always small. Large bright regions read as a rendering fault, not as light.</li>
-    <li>A hard HDR core with a soft standard-range bloom around it is what sells the illusion. HDR alone looks flat; bloom alone looks like a sticker.</li>
-    <li>Low Power Mode, Reduce White Point, a warm phone and high screen brightness all shrink your headroom.</li>
+    <li>Legible when clamped. If a specimen needs the boost to be readable, it is broken on most screens and in every screenshot.</li>
+    <li>Boost is decoration, never information. Clamp permanently and nothing should change function.</li>
+    <li>Small area, short time. Large bright regions read as a rendering fault; sustained ones read as a mistake.</li>
+    <li>Hard HDR core, soft SDR bloom. HDR alone looks flat, bloom alone looks like a sticker.</li>
+    <li>Spend the budget once per screen. Two things competing for headroom means neither gets it.</li>
+    <li>Dim-then-flash is a photosensitivity pattern. Keep transitions under three per second, keep the area small, and honour <code>prefers-reduced-motion</code> — this page does.</li>
   </ul>
-  <h3>How this is built</h3>
-  <p>Two 300-byte assets carry all the light: a Rec.2100 PQ still and an HLG video clip, both encoded brighter than reference white and embedded directly in this file. Each icon masks one of them into a shape. That is the whole technique, and it is the same one used for glowing avatars and app icons in production.</p>
+
+  <h3>Why the counter-dim matters more than the headroom</h3>
+  <p>Your range is headroom stops plus however far you are willing to pull the surround down. The second half costs nothing, works on every display, survives clamping, and survives the screenshot. Set Counter-dim to 0 and walk the ladder again — most of what makes these specimens work disappears, and the headroom alone does not replace it.</p>
+
+  <h3>How it is built</h3>
+  <p>Four Rec.2100 stills and four matching HLG clips, a few hundred bytes each, encoded brighter than reference white and embedded in this file. Each specimen masks one of them into a shape. Nothing else here is exotic: the surround, the bloom, the dimming and the timing are ordinary CSS, and that is where most of the effect comes from.</p>
 </footer>
 </div>
 
 <script>
 (function(){
-  var b=document.body,
-      av=document.getElementById('b-avif'),
-      vi=document.getElementById('b-video'),
-      cl=document.getElementById('b-clamp');
-  function src(mode){
-    b.classList.toggle('src-avif',mode==='avif');
-    b.classList.toggle('src-video',mode==='video');
-    av.setAttribute('aria-pressed',String(mode==='avif'));
-    vi.setAttribute('aria-pressed',String(mode==='video'));
-    if(mode==='video'){
-      document.querySelectorAll('video').forEach(function(v){
-        var p=v.play(); if(p&&p.catch) p.catch(function(){});
-      });
-    }
-  }
-  av.addEventListener('click',function(){src('avif')});
-  vi.addEventListener('click',function(){src('video')});
-  cl.addEventListener('click',function(){
-    var on=b.classList.toggle('clamped');
-    cl.setAttribute('aria-pressed',String(on));
-    cl.textContent=on?'Release to extended range':'Clamp to standard range';
+/* ---- the four encoded sources ---------------------------------------- */
+var PA='AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAAD5bWV0YQAAAAAAAAAvaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAFBpY3R1cmVIYW5kbGVyAAAAAA5waXRtAAAAAAABAAAAHmlsb2MAAAAARAAAAQABAAAAAQAAASEAAAA',
+    PB='AAAAKGlpbmYAAAAAAAEAAAAaaW5mZQIAAAAAAQAAYXYwMUNvbG9yAAAAAGppcHJwAAAAS2lwY28AAAAUaXNwZQAAAAAAAABgAAAAYAAAABBwaXhpAAAAAAMKCgoAAAAMYXYxQ4EATAAAAAATY29scm5jbHgACQAQAAkAAAAAF2lwbWEAAAAAAAAAAQABBAECgwQAAAA',
+    PC='bWRhdAoJGBmv326EiASCM';
+var AVIF=[
+  PA+'b'+PB+'j'+PC+'g4QoAAAEAAAAADiOy8haw==',
+  PA+'h'+PB+'p'+PC+'hQQoAAAEAAAAADiokejPqt/ueemYA==',
+  PA+'i'+PB+'q'+PC+'hUQoAAAEAAAAADijwafYdMzn8eYJmA=',
+  PA+'j'+PB+'r'+PC+'hYQoAAAEAAAAADiOJ7ziPiIGSVMe3CA'
+];
+
+var MP4=[
+'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'
+];
+
+/* SDR bloom colour paired to each source, so the soft halo and the hard core agree */
+var BLOOM=['255,244,222','255,122,150','255,152,64','126,214,255'];
+
+var b=document.body, cur=0;
+
+function fill(el,i){
+  el.innerHTML='';
+  var im=document.createElement('img');
+  im.alt=''; im.src='data:image/avif;base64,'+AVIF[i];
+  var vd=document.createElement('video');
+  vd.muted=true; vd.autoplay=true; vd.loop=true; vd.playsInline=true;
+  vd.setAttribute('muted',''); vd.setAttribute('playsinline','');
+  vd.setAttribute('disableremoteplayback','');
+  vd.src='data:video/mp4;base64,'+MP4[i];
+  el.appendChild(im); el.appendChild(vd);
+  var p=vd.play(); if(p&&p.catch) p.catch(function(){});
+}
+function paintAll(i){
+  cur=i;
+  b.style.setProperty('--core-c',BLOOM[i]);
+  document.querySelectorAll('[data-light]').forEach(function(el){fill(el,i)});
+  document.querySelectorAll('#swatches button').forEach(function(btn,n){
+    btn.setAttribute('aria-pressed',String(n===i));
   });
+}
+
+/* ---- the ladder ------------------------------------------------------ */
+var STEPS={
+  flat    :{c:'f-flat',  t:'flat'},
+  bloom   :{c:'f-bloom', t:'bloom'},
+  bdim    :{c:'f-bloom f-dim', t:'bloom + counter-dim'},
+  hdr     :{c:'f-hdr',   t:'headroom'},
+  hdim    :{c:'f-hdr f-dim', t:'headroom + counter-dim'},
+  contr   :{c:'f-hdr f-dim f-contract', t:'+ contraction'},
+  shift   :{c:'f-hdr f-dim f-contract f-shift', t:'+ counter-shift'},
+  trough  :{c:'f-hdr f-dim f-contract f-shift f-trough', t:'+ adaptation trough'}
+};
+
+var RUNGS=[
+ {h:'Flat', left:null, right:'flat',
+  p:'A solid disc, no glow of any kind. This is the control, and it is also what your icon looks like in a screenshot on any device ever made.',
+  l:'<b>Baseline.</b> Everything below is measured against this. Note how quickly it stops reading as light at all and starts reading as a coloured shape.'},
+
+ {h:'Bloom', left:'flat', right:'bloom',
+  p:'The conventional answer: a blurred copy behind the disc. Still entirely inside standard range.',
+  l:'<b>What it buys.</b> Softness and a sense of atmosphere. What it does not buy is intensity — a bloom at full opacity is still capped at white, so the shape reads as a sticker of a light rather than a light.'},
+
+ {h:'Counter-dim, with no HDR at all', left:'bloom', right:'bdim',
+  p:'Same bloom, but the surround now falls as the core rises. The two are locked to the same curve. There is still no HDR anywhere in this comparison.',
+  l:'<b>This is the surprise.</b> Most of the perceived range comes from here, not from headroom — and it costs nothing, works on every display, survives clamping, and survives the screenshot. Push Counter-dim to 85% and then drop it to 0.'},
+
+ {h:'Headroom', left:'bloom', right:'hdr',
+  p:'The disc is replaced with a masked HDR source. Static surround, same bloom, same timing.',
+  l:'<b>Compare against bloom, not against flat.</b> The gain is real but narrower than people expect, and on a phone at low brightness it can vanish entirely. Hit Clamp: the right pane should collapse onto the left.'},
+
+ {h:'Headroom and counter-dim together', left:'hdr', right:'hdim',
+  p:'Both techniques, locked to one curve. The core climbs into headroom while the room falls away underneath it.',
+  l:'<b>The multiplication.</b> Neither half is doing anything new — the effect is that the eye is comparing a peak against a floor that is also moving. This is the pane worth showing to someone who thinks HDR means "brighter".'},
+
+ {h:'Contraction', left:'hdim', right:'contr',
+  p:'The mask now shrinks as it brightens, so the emissive area is smallest exactly when its luminance is highest.',
+  l:'<b>Why it reads hotter.</b> A point source at a given luminance looks more intense than a patch at the same luminance, and a shrinking area spends less of your headroom budget at the moment you most need it. Two wins from one animation.'},
+
+ {h:'Chromatic counter-shift', left:'contr', right:'shift',
+  p:'The dimming surround now takes a cool tint while the core stays warm. Drag the Surround hue slider through the full circle on this pair.',
+  l:'<b>Where colour actually matters.</b> The core hue barely changes the reading; the relationship does. Warm core against cool surround reads as heat. Same-hue surround reads as a brightness bug. Complementary is the strongest, around 180° from the core.'},
+
+ {h:'Adaptation trough', left:'shift', right:'trough',
+  p:'Same techniques, redistributed in time: a long dark trough, then a short peak. The loop is slower on the right, and most of it is spent near black.',
+  l:'<b>The eye is the amplifier.</b> Local adaptation takes a second or two, so a peak arriving out of darkness reads far brighter than the same peak from a neutral surround. This is also the correct luminance budget for anything that repeats.'}
+];
+
+function pane(key,tagOverride){
+  var s=STEPS[key];
+  var d=document.createElement('div');
+  d.className='pane '+s.c;
+  d.innerHTML='<span class="tag">'+(tagOverride||s.t)+'</span>'+
+    '<div class="rim"></div><div class="veil"></div><div class="bloom"></div>'+
+    '<div class="core"><div class="sdrcore"></div><div class="light m-dot" data-light></div></div>';
+  return d;
+}
+
+var ladder=document.getElementById('ladder');
+RUNGS.forEach(function(r){
+  var sec=document.createElement('section');
+  sec.className='rung';
+  var head=document.createElement('div');
+  head.innerHTML='<h2>'+r.h+'</h2><p>'+r.p+'</p>';
+  var pair=document.createElement('div');
+  pair.className='pair'+(r.left?'':' solo');
+  if(r.left) pair.appendChild(pane(r.left));
+  pair.appendChild(pane(r.right));
+  var look=document.createElement('p');
+  look.className='look'; look.innerHTML=r.l;
+  sec.appendChild(head); sec.appendChild(pair); sec.appendChild(look);
+  ladder.appendChild(sec);
+});
+
+/* reference strip */
+['ref-img','ref-vid'].forEach(function(id,n){
+  var host=document.getElementById(id);
+  var box=document.createElement('div');
+  box.setAttribute('data-light',''); box.style.cssText='position:absolute;inset:0';
+  host.insertBefore(box,host.firstChild);
+  if(n===0) box.setAttribute('data-fixed','img'); else box.setAttribute('data-fixed','vid');
+});
+
+/* swatches */
+var sw=document.getElementById('swatches');
+AVIF.forEach(function(_,i){
+  var btn=document.createElement('button');
+  btn.className='swatch'; btn.type='button';
+  btn.setAttribute('aria-pressed',String(i===0));
+  btn.setAttribute('aria-label','Light source '+(i+1));
+  var inner=document.createElement('span');
+  inner.setAttribute('data-light',''); inner.style.cssText='position:absolute;inset:0;display:block';
+  btn.appendChild(inner);
+  btn.addEventListener('click',function(){paintAll(i)});
+  sw.appendChild(btn);
+});
+
+paintAll(0);
+
+/* the reference strip always shows one of each, regardless of the Source toggle */
+document.querySelectorAll('[data-fixed]').forEach(function(el){
+  var want=el.getAttribute('data-fixed');
+  var im=el.querySelector('img'), vd=el.querySelector('video');
+  if(want==='img'){vd.style.display='none';im.style.display='block';}
+  else {im.style.display='none';vd.style.display='block';}
+  el.removeAttribute('data-light');
+});
+
+/* ---- controls -------------------------------------------------------- */
+function toggle(el,on){el.setAttribute('aria-pressed',String(on))}
+
+var bi=document.getElementById('b-img'), bv=document.getElementById('b-vid');
+function source(m){
+  b.classList.toggle('src-img',m==='img');
+  b.classList.toggle('src-vid',m==='vid');
+  toggle(bi,m==='img'); toggle(bv,m==='vid');
+  if(m==='vid') document.querySelectorAll('video').forEach(function(v){
+    var p=v.play(); if(p&&p.catch)p.catch(function(){});
+  });
+}
+bi.addEventListener('click',function(){source('img')});
+bv.addEventListener('click',function(){source('vid')});
+
+function slider(id,valId,fn){
+  var s=document.getElementById(id), v=document.getElementById(valId);
+  function u(){v.textContent=fn(s.value)}
+  s.addEventListener('input',u); u();
+}
+slider('s-hue','v-hue',function(x){b.style.setProperty('--sur-h',x);return x+'\u00B0'});
+slider('s-dim','v-dim',function(x){b.style.setProperty('--veil',x/100);return x+'%'});
+slider('s-beat','v-beat',function(x){b.style.setProperty('--beat',(x/10)+'s');return (x/10).toFixed(1)+'s'});
+
+var bc=document.getElementById('b-clamp');
+bc.addEventListener('click',function(){
+  var on=b.classList.toggle('clamped');
+  toggle(bc,on);
+  bc.textContent=on?'Release to extended range':'Clamp to standard range';
+});
+
+var bf=document.getElementById('b-freeze');
+bf.addEventListener('click',function(){
+  var on=b.classList.toggle('frozen');
+  toggle(bf,on);
+  bf.textContent=on?'Resume':'Hold at peak';
+  document.querySelectorAll('video').forEach(function(v){on?v.pause():v.play().catch(function(){})});
+});
 })();
 </script>
 </body>
